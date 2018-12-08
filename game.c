@@ -17,7 +17,8 @@ sem_t* semHost;
 sem_t* semClientArr[N];
 //const char semNames[N][50] = {"/semClient1", "/semClient2", "/semClient3", "/semClient4", "/semClient5", "/semClient6", "/semClient7"};
 const char semNames[N][50] = {"/semClient1", "/semClient2"};
-
+unsigned int wolfSeed = 1;
+unsigned int goatsSeeds[2] = {2, 3};
 
 
 
@@ -32,7 +33,7 @@ void clean(){
 			sem_close(semClientArr[i]);
 			sem_unlink(semNames[i]);
 		}
-	if(conn_isCreated)
+	if(conn_isCreated())
 		conn_destroy();
 
 }
@@ -66,9 +67,11 @@ void host_function(){
 	int goatsNumbers[N];
 	//Initial game data
 	int aliveStates[N];
+	
 	for(i=0; i < N; i++)
 		aliveStates[i] = 1;
 	int deadTurnsNumber = 0;
+
 
 	printf("Wolf started\n");
 
@@ -76,7 +79,7 @@ void host_function(){
     {
 
 
-    wolfNumber = rand()%100 + 1;
+    wolfNumber = rand_r(&wolfSeed)%100 + 1;
     printf("Wolf generated number %i\n", wolfNumber);
 
 	for(i=0; i < N; i++){
@@ -88,7 +91,7 @@ void host_function(){
 		sem_wait(semHost);
 		if(conn_read(&goatsNumbers[i], sizeof(int)) == 0)
 			printf("Connector problem\n");
-		printf("Wolf got number from goat%i\n", i);
+		printf("Wolf got number %i from goat%i\n", goatsNumbers[i], i);
 		aliveStates[i] = calcAliveState(wolfNumber, goatsNumbers[i], aliveStates[i]);
 	}
 
@@ -97,7 +100,7 @@ void host_function(){
 	else
 		deadTurnsNumber++;
 	printf("Round finished\n");
-	if(deadTurnsNumber == 2)
+	if(deadTurnsNumber == 1)
 		break;
 }
     for(i=0; i < N; i++)
@@ -133,12 +136,17 @@ void client_function(int i){
 	}
 
 	if(aliveState == 1)
-		goatNumber = rand()%100 + 1;
-	else if(aliveState == 0)
-		goatNumber = rand()%50 + 1;
+	{
+		goatNumber = rand_r(&goatsSeeds[i])%100 + 1;
+	}
+	else if(aliveState == 0){
+		goatNumber = rand_r(&goatsSeeds[i])%50 + 1;
+	}
 
 
-	printf("Goat %i generate data\n", i);
+	printf("Goat %i generate data %i\n", i, goatNumber);
+	if (conn_write(&goatNumber, sizeof(int)) == 0)
+			printf("Connector problem\n");
 	sem_post(semHost);
 	sem_wait(semClientArr[i]);
 }

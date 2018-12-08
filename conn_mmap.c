@@ -1,7 +1,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/mman.h>
-
 #include "connector.h"
 
 #define SIZE 4

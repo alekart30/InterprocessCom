@@ -4,7 +4,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 #include "connector.h"
 
 #define SIZE 4

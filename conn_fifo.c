@@ -4,7 +4,6 @@
 #include <fcntl.h> 
 #include <sys/types.h>
 #include <sys/stat.h>
-
 #include "connector.h"
 
 
@@ -15,7 +14,11 @@ int fdw = 0;
 
 void conn_create()
 {
-  created = (mkfifo(FIFO_NAME, S_IRWXU) == 0);
+  if(mkfifo(FIFO_NAME, S_IRWXU) == 0)
+    created = 1;
+  else
+    created = 0;
+  
   if (!created)
     return;
   fdr = open(FIFO_NAME, O_RDONLY | O_NONBLOCK);
